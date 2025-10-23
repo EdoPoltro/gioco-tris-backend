@@ -7,6 +7,10 @@ const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, { cors: { origin: '*' } });
 
+app.get('/', (req, res) => {
+  res.send('Backend Tris attivo ✅');
+});
+
 io.on('connection', (socket) => {
   console.log('A user connected:', socket.id);
   registerGameHandlers(io, socket);
