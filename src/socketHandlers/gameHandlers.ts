@@ -37,9 +37,6 @@ export const registerGameHandlers = (io: Server, socket: Socket) => {
     }
     else
         msg.description = 'Codice non valido.';
-   
-    // console.log(games)
-    // console.log(msg)
 
     socket.emit('join-status', msg);
   });
@@ -49,7 +46,7 @@ export const registerGameHandlers = (io: Server, socket: Socket) => {
 
     const game = games.find((game: Game) => game.gameCode == move.gameCode);
 
-    if(!game) return;
+    if(!game) return; 
 
     if(game.currentPlayer == '1'){
       game.board[move.i]!.dial[move.j] = 'X';
@@ -75,10 +72,26 @@ export const registerGameHandlers = (io: Server, socket: Socket) => {
       game.activeQuadrant = null;
     else
       game.activeQuadrant = move.j as -1 | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | null;
-
     io.to(game.gameCode).emit('share-update-game', game); 
 
     if(['1','2','P'].includes(winner))
       io.to(game.gameCode).emit('end-game', winner); 
+  });
+
+  socket.on('reconnect-request', (gameData: {gameCode: string, playerNumber: string}) => {
+    console.log(`Player ${socket.id} is reconnecting...`);
+
+    const game = games.find((game: Game) => game.gameCode == gameData.gameCode);
+
+    if(!game) return;
+
+    socket.join(game.gameCode);
+
+    if(gameData.playerNumber === '1')
+      game.player1 = socket.id;
+    else if(gameData.playerNumber === '2')
+      game.player2 = socket.id;
+    
+    socket.emit('reconnect-game', game);
   });
 }; 
